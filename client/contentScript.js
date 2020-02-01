@@ -1,4 +1,4 @@
-const BASE_URL = 'http://80802807.ngrok.io'
+const BASE_URL = 'https://80802807.ngrok.io'
 const ytVideo = document.getElementsByClassName('video-stream')[0];
 const ytUrlIdSeparator = 'v=';
 const ytURL = window.location.href.split(ytUrlIdSeparator);
@@ -20,12 +20,15 @@ const ytID = ytURL[1];
 //       }
 //   });
 
-fetch(`${BASE_URL}/test`, {
-  method: 'GET'
+fetch(`${BASE_URL}/`, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({ video_id: ytID })
 })
 .then(response => response.json())
-.then(response => console.log('Got response from backend', response))
-.catch(error => console.error(error));
+.then(data => console.log('data', data))
 
 function checkVideo() {
   // setInterval(function() {
