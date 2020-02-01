@@ -11,12 +11,24 @@ from youtube_transcript_api import YouTubeTranscriptApi
 from flask_cors import CORS
 import pandas as pd
 
-
+import ast
 
 from profanity_check import predict, predict_prob
 
 # print(data)
 CORS(app)
+def jsonToDicts(STR):
+    
+    STRI = list(STR)
+    for i in range(0,len(STRI)):
+        if STRI[i] == "\"":
+            STRI[i] = "\'"
+
+    STRIN = ''.join(STRI)
+    STRING = ast.literal_eval(STRIN)
+
+    return STRING
+
 
 @app.route('/', methods=['GET','POST'])
 def main():
@@ -46,7 +58,9 @@ def main():
         else:
             no_curse_words = False
         print(ixs)
-        offending_lines = ((ixs.to_json()))
+        offending_lines = jsonToDicts((ixs.to_json()))
+        print("hihhhh")
+        
         
         
         return json.dumps({"Message": "Hello chrome extension ppl", "no_curse_words":no_curse_words, "offending_lines":offending_lines})
