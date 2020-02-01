@@ -15,20 +15,6 @@ import ast
 
 from profanity_check import predict, predict_prob
 
-# print(data)
-CORS(app)
-def jsonToDicts(STR):
-    
-    STRI = list(STR)
-    for i in range(0,len(STRI)):
-        if STRI[i] == "\"":
-            STRI[i] = "\'"
-
-    STRIN = ''.join(STRI)
-    STRING = ast.literal_eval(STRIN)
-
-    return STRING
-
 
 @app.route('/', methods=['GET','POST'])
 def main():
@@ -57,9 +43,10 @@ def main():
             no_curse_words = True
         else:
             no_curse_words = False
-        print(ixs)
-        offending_lines = jsonToDicts((ixs.to_json()))
-        print("hihhhh")
+        # print(ixs)
+        ixs.start = ixs.start.round()
+        ixs.duration = ixs.duration.round()
+        offending_lines = [tuple(x) for x in ixs.to_numpy()]
         
         
         
