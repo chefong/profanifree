@@ -1,20 +1,38 @@
-let ytVideo = document.getElementsByClassName('video-stream')[0];
-let ytURL = window.location.href.split('=v')[1];
+const BASE_URL = 'http://80802807.ngrok.io'
+const ytVideo = document.getElementsByClassName('video-stream')[0];
+const ytUrlIdSeparator = 'v=';
+const ytURL = window.location.href.split(ytUrlIdSeparator);
+const ytID = ytURL[1];
 
-console.log(ytURL);
+// chrome.runtime.sendMessage(
+//   {
+//       contentScriptQuery: "postData"
+//       , data: 'hi'
+//       , url: BASE_URL
+//   }, function (response) {
+//       debugger;
+//       if (response != undefined && response != "") {
+//           callback(response);
+//       }
+//       else {
+//           debugger;
+//           callback(null);
+//       }
+//   });
 
-setInterval(function() {
-  if (Math.round(ytVideo.currentTime) % 10 === 0){
-    ytVideo.currentTime = ytVideo.currentTime + 5;
-  }
-}, 100);
+fetch(`${BASE_URL}/test`, {
+  method: 'GET'
+})
+.then(response => response.json())
+.then(response => console.log('Got response from backend', response))
+.catch(error => console.error(error));
 
-// var timeout = setTimeout(function(){
-//   var interval = setInterval(function(){
-//     console.log('interval')
-//     if(Math.round(ytVideo.getCurrentTime()) % 10 === 0){
-//         clearInterval(interval);
-//         ytVideo.currentTime = ytVideo.getCurrentTime() + 5;
-//     }
-//   },100);
-// },100);
+function checkVideo() {
+  // setInterval(function() {
+  //   if (Math.round(ytVideo.currentTime) % 10 === 0){
+  //     ytVideo.currentTime = ytVideo.currentTime + 5;
+  //   }
+  // }, 100);
+}
+
+window.addEventListener("load", checkVideo, false);
