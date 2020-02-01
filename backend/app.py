@@ -18,6 +18,10 @@ from profanity_check import predict, predict_prob
 
 CORS(app)
 
+# api_key = "***PUT IN YOUR API KEY HERE***"
+
+
+# url = f"https://www.googleapis.com/youtube/v3/videos?part=snippet&id={video_id}&key={api_key}"
 def jsonToDicts(STR):
     
     STRI = list(STR)
@@ -56,18 +60,25 @@ def main():
         ixs = df.loc[predict(df.text) == [1]]
         s = []
         for index, row in ixs.iterrows():
-            print(index)
-            print("hello")
-            print(row)
-            print(row.text)
+            # find the number of characters in the caption. 
+            # divide that number by the total length of the caption (with or without spaces)
             r = row.text.replace('\n', ' ')
+            length_of_caption = len(r)
+            #now that we have the denominator, we need to find the numerator
+            print("r", r)
             ww = r.split()
             print(ww)
+            num_chars_passed = 0
             for i in range(0, len(ww)):
-                print(ww[i])
+                
+                w = ww[i].split()
+                print(w)
                 if predict([ww[i]])== [1]:
-                    t = (ww[i], row.start + ((i/len(ww)) * row.duration), row.duration/len(ww))
+                    ratio = (len(w) * 1.0)/length_of_caption
+                    t = (ww[i], row.start, row.duration)
+                    # row.duration * ratio
                     s.append(t)
+                num_chars_passed += len(ww[i])
                     
         # print(ixs)
         # ixs.start = ixs.start.round()
@@ -104,19 +115,18 @@ def links():
                 video_id = link[-11:]
                 try:
                     df = pd.DataFrame(YouTubeTranscriptApi.get_transcript(video_id))
+                    ixs = df.loc[predict(df.text) == [1]]
+                    if ixs.empty:
+                        ii = False
+                    else:
+                        ii = True
+
+                    statuses.append({"video_id":video_id, "curse_words":ii})
+                
                 except:
                     pass
 
-                ixs = df.loc[predict(df.text) == [1]]
-                if ixs.empty:
-                    ii = False
-                else:
-                    ii = True
-
-                statuses.append({"video_id":video_id, "curse_words":ii})
-
-            
-            return json.dumps({"Message":"Hello chrome extension ppl", "links":statuses})
+                return json.dumps({"Message":"Hello chrome extension ppl", "links":statuses})
                 
 
         
