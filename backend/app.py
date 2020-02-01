@@ -15,7 +15,7 @@ import ast
 
 from profanity_check import predict, predict_prob
 
-
+CORS(app)
 @app.route('/', methods=['GET','POST'])
 def main():
 
