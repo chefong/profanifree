@@ -7,6 +7,7 @@ from pytube import YouTube
 from flask import Flask, request, url_for
 
 app = Flask(__name__)
+import youtube_transcript_api
 from youtube_transcript_api import YouTubeTranscriptApi
 from flask_cors import CORS
 import pandas as pd
@@ -16,6 +17,18 @@ import ast
 from profanity_check import predict, predict_prob
 
 CORS(app)
+
+def jsonToDicts(STR):
+    
+    STRI = list(STR)
+    for i in range(0,len(STRI)):
+        if STRI[i] == "\"":
+            STRI[i] = "\'"
+
+    STRIN = ''.join(STRI)
+    STRING = ast.literal_eval(STRIN)
+
+    return STRING
 @app.route('/', methods=['GET','POST'])
 def main():
 
@@ -33,24 +46,77 @@ def main():
 
 
         print(video_id)
-
-        data = YouTubeTranscriptApi.get_transcript(video_id)
+        try:
+            data = YouTubeTranscriptApi.get_transcript(video_id)
+        except youtube_transcript_api._errors.TranscriptsDisabled:
+            return json.dumps({"Message":"Subtitles disabled for this video"})
         df = pd.DataFrame(data)
         print(df)
 
         ixs = df.loc[predict(df.text) == [1]]
-        if ixs.empty:
-            no_curse_words = True
-        else:
-            no_curse_words = False
+        s = []
+        for index, row in ixs.iterrows():
+            print(index)
+            print("hello")
+            print(row)
+            print(row.text)
+            r = row.text.replace('\n', ' ')
+            ww = r.split()
+            print(ww)
+            for i in range(0, len(ww)):
+                print(ww[i])
+                if predict([ww[i]])== [1]:
+                    t = (ww[i], row.start + ((i/len(ww)) * row.duration), row.duration/len(ww))
+                    s.append(t)
+                    
         # print(ixs)
-        ixs.start = ixs.start.round()
-        ixs.duration = ixs.duration.round()
+        # ixs.start = ixs.start.round()
+        # ixs.duration = ixs.duration.round()
         offending_lines = [tuple(x) for x in ixs.to_numpy()]
         
         
+        if ixs.empty:
+            ii = False
+        else:
+            ii = True
+
+        if len(s) == 0:
+            ii = False
+
         
-        return json.dumps({"Message": "Hello chrome extension ppl", "no_curse_words":no_curse_words, "offending_lines":offending_lines})
+        
+        return json.dumps({"Message": "Hello chrome extension ppl", "curse_words":ii,  "offending_lines":jsonToDicts(json.dumps(s))})
+
+
+@app.route('/links', methods=['GET','POST'])
+def links():
+
+    if request.method=='POST':
+        links = request.form.get('links')
+        if links == None:
+            packet = dict(request.json)
+            links = packet['links']
+
+            statuses = []
+            print(links)
+            for link in links:
+                #somehow get video from link
+                video_id = link[-11:]
+                df = pd.DataFrame(YouTubeTranscriptApi.get_transcript(video_id))
+
+                ixs = df.loc[predict(df.text) == [1]]
+                if ixs.empty:
+                    ii = False
+                else:
+                    ii = True
+
+                statuses.append({"video_id":video_id, "curse_words":ii})
+
+            
+            return json.dumps({"Message":"Hello chrome extension ppl", "links":statuses})
+                
+
+        
 
 @app.route('/test', methods=['GET','POST'])
 def test():
