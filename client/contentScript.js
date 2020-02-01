@@ -1,4 +1,4 @@
-const BASE_URL = 'http://127.0.0.1:5000'
+const BASE_URL = 'http://127.0.0.1:5000';
 const ytVideo = document.getElementsByClassName('video-stream')[0];
 const ytUrlIdSeparator = 'v=';
 const ytURL = window.location.href.split(ytUrlIdSeparator);
@@ -6,16 +6,10 @@ const ytID = ytURL[1];
 
 let recList = [];
 let recElem = [];
-
-
-
-
-
-function fastForward(video, timestamps, currentTime) {
-  if (timestamps.has(currentTime)) {
-    video.currentTime = video.currentTime + timestamps.get(currentTime);
-  }
-}
+let unmuteTimer;
+let videoTime;
+let censorBeep = new Audio(chrome.runtime.getURL('censor-beep-4.mp3'));
+censorBeep.volume = 0.25;
 
 
 function colorRec() {
@@ -68,22 +62,53 @@ function checkVideo() {
 
         offendingLines.forEach(line => {
           const [phrase, timestamp, durationAmount] = line;
-          timestamps.set(Math.round(timestamp), Math.round(durationAmount));
+          const roundedTimestamp = Math.round(timestamp) + 2;
+          const roundedDurationAmount = durationAmount * 100;
+          timestamps.set(roundedTimestamp, roundedDurationAmount);
         });
 
-        setInterval(function() {
-          const roundedTime = Math.round(ytVideo.currentTime);
+        console.log(timestamps);
+
+        videoTime = setInterval(function() {
+          let roundedTime = Math.round(ytVideo.currentTime);
+          console.log(roundedTime);
           if (timestamps.has(roundedTime)) {
-            ytVideo.currentTime = ytVideo.currentTime + timestamps.get(roundedTime);
+            ytVideo.muted = true;
+            censorBeep.play();
+            unmuteTimer = setTimeout(function() {
+              ytVideo.muted = false;
+              censorBeep.pause();
+              censorBeep.currentTime = 0;
+            }, timestamps.get(roundedTime) * 1000);
           }
         }, 100);
+
+        ytVideo.addEventListener('play', () => {
+          videoTime = setInterval(function() {
+            let roundedTime = Math.round(ytVideo.currentTime);
+            console.log(roundedTime);
+            if (timestamps.has(roundedTime)) {
+              ytVideo.muted = true;
+              censorBeep.play();
+              unmuteTimer = setTimeout(function() {
+                ytVideo.muted = false;
+                censorBeep.pause();
+                censorBeep.currentTime = 0;
+              }, timestamps.get(roundedTime) * 1000);
+            }
+          }, 100);
+        })
       }
     })
-    .catch(error => console.error('       ###########      ERROR', error));
+    .catch(error => console.error('###########      ERROR', error));
 }
 
-
-
+setInterval(colorRec, 4000);
 window.addEventListener("load", checkVideo, false);
 
-setInterval(colorRec, 4000);
+ytVideo.addEventListener('pause', () => {
+  console.log('pause EVENT LISTENER FROM VIDEO')
+  clearTimeout(unmuteTimer);
+  clearInterval(videoTime);
+  console.log("hewwo")
+});
