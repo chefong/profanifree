@@ -1,12 +1,34 @@
-const BASE_URL = 'https://80802807.ngrok.io'
+const BASE_URL = 'https://80802807.ngrok.io';
 const ytVideo = document.getElementsByClassName('video-stream')[0];
 const ytUrlIdSeparator = 'v=';
 const ytURL = window.location.href.split(ytUrlIdSeparator);
 const ytID = ytURL[1];
+var censorBeep = new Audio(chrome.runtime.getURL('censor-beep-4.mp3'));
+censorBeep.play();
 
-function fastForward(video, timestamps, currentTime) {
-  if (timestamps.has(currentTime)) {
-    video.currentTime = video.currentTime + timestamps.get(currentTime);
+ytVideo.addEventListener("pause", event => {
+  console.log('paused audio', censorBeep.volume)
+  event.preventDefault();
+  if (!censorBeep.paused) {
+    censorBeep.pause();
+  }
+}, false);
+
+function muteVideo(video, timestamps, roundedTime) {
+  censorBeep.play();
+  censorBeep.volume = 0.2;
+
+  setTimeout(function() {
+    video.muted = false;
+    censorBeep.volume = 0;
+  }, timestamps.get(roundedTime) * 1000);
+}
+
+function cleanVideoSegment(video, timestamps) {
+  const roundedTime = Math.round(video.currentTime);
+  if (timestamps.has(roundedTime)) {
+    // video.currentTime = video.currentTime + timestamps.get(roundedTime);
+    muteVideo(video, timestamps, roundedTime);
   }
 }
 
@@ -27,18 +49,15 @@ function checkVideo() {
 
         offendingLines.forEach(line => {
           const [phrase, timestamp, durationAmount] = line;
-          timestamps.set(Math.round(timestamp), Math.round(durationAmount));
+          const roundedTimestamp = Math.round(timestamp);
+          const roundedDurationAmount = Math.round(durationAmount) + 1;
+          timestamps.set(roundedTimestamp, roundedDurationAmount);
         });
 
-        setInterval(function() {
-          const roundedTime = Math.round(ytVideo.currentTime);
-          if (timestamps.has(roundedTime)) {
-            ytVideo.currentTime = ytVideo.currentTime + timestamps.get(roundedTime);
-          }
-        }, 100);
+        setInterval(cleanVideoSegment, 100, ytVideo, timestamps);
       }
     })
-    .catch(error => console.error('       ###########      ERROR', error));
+    .catch(error => console.error('###########      ERROR', error));
 }
 
 window.addEventListener("load", checkVideo, false);

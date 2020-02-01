@@ -3,6 +3,9 @@
   "version": "1.0",
   "description": "Build an Extension!",
   "permissions": ["activeTab", "declarativeContent", "storage", "http://80802807.ngrok.io/*"],
+  "web_accessible_resources": [
+    "censor-beep-4.mp3"
+  ],
   "options_page": "options.html",
   "background": {
     "scripts": ["background.js"],
