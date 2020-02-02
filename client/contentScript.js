@@ -122,8 +122,10 @@ function checkVideo() {
     });
 }
 
+
 setInterval(updateColorRec, 2000);
 window.addEventListener("load", checkVideo, false);
+
 
 ytVideo.addEventListener('pause', () => {
   console.log('pause EVENT LISTENER FROM VIDEO')
