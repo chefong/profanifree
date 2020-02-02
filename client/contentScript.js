@@ -30,6 +30,8 @@ chrome.runtime.onMessage.addListener(data => {
 function translateTitle() {
 
   if(!translatedTitle) {
+
+    console.log('Im about to call fetch with TITLE')
     let vidTitle = document.querySelector("h1");
     let initTitle = document.querySelector("h1").innerText;
 
@@ -47,7 +49,7 @@ function translateTitle() {
           if(title.includes("****")) {
             vidTitle.style.color = "red";
           }
-
+          translatedTitle = true;
         })
       .catch(error => console.error('       ##########      ERROR', error));
   } else {
@@ -113,8 +115,8 @@ function commentParser() {
     for (i = 0; i < temp.length; ++i) {
       if (data['Data'][i] && data['Data'][i].includes("*") == true){
         temp[i].getElementsByTagName("ytd-expander")[0].querySelector("#content-text").style.color = "red";
+        list.push(temp[i].getElementsByTagName("ytd-expander")[0].querySelector("div").getElementsByTagName("yt-formatted-string")[1].innerText = data['Data'][i]);
       }
-      list.push(temp[i].getElementsByTagName("ytd-expander")[0].querySelector("div").getElementsByTagName("yt-formatted-string")[1].innerText = data['Data'][i]);
     }
   })
 }
