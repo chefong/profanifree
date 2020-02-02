@@ -6,9 +6,10 @@
     "default_popup": "popup.html"
   },
   "description": "Skip the bad words and stay clean!",
-  "permissions": ["activeTab", "declarativeContent", "storage", "http://80802807.ngrok.io/*"],
+  "permissions": ["activeTab", "declarativeContent", "storage", "https://*.youtube.com/*", "history", "tabs", "webNavigation"],
   "web_accessible_resources": [
-    "censor-beep-4.mp3"
+    "censor-beep-4.mp3",
+    "censor-beep-10.wav"
   ],
   "options_page": "options.html",
   "background": {
