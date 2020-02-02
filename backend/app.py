@@ -16,7 +16,7 @@ import ast
 
 from profanity_check import predict, predict_prob
 
-CORS(app)
+cors = CORS(app,resources={r"/*": {"origins": "*"}})
 
 # api_key = "***PUT IN YOUR API KEY HERE***"
 
@@ -114,6 +114,7 @@ def links():
                 #somehow get video from link
                 video_id = link[-11:]
                 try:
+                    print("hellos")
                     df = pd.DataFrame(YouTubeTranscriptApi.get_transcript(video_id))
                     ixs = df.loc[predict(df.text) == [1]]
                     if ixs.empty:
@@ -123,18 +124,38 @@ def links():
 
                     statuses.append({"video_id":video_id, "curse_words":ii})
                 
-                except:
+                except youtube_transcript_api._errors.VideoUnavailable:
+                    print("hellop")
                     continue
-
-                print('###### STATUSES',statuses)
-
-                return json.dumps({"Message":"Hello chrome extension ppl", "links":statuses})
+                except youtube_transcript_api._errors.TranscriptsDisabled:
+                    print("hellq")
+                    continue
+                print(statuses)
+            return json.dumps({"Message":"Hello chrome extension ppl", "links":statuses})
                 
 
-        
+@app.route('/numbadwords', methods=['GET', 'POST'])
+def numbadwords():
+
+    if request.method == 'POST':
+        video_id = request.form.get('video_id')
+        if video_id == None:
+            packet = dict(request.json)
+            video_id = packet['video_id']
+        try:
+            data = YouTubeTranscriptApi.get_transcript(video_id)
+        except youtube_transcript_api._errors.TranscriptsDisabled:
+            return json.dumps({"Message":"Subtitles disabled for this video"})
+        df = pd.DataFrame(data)
+        print(df)
+
+        ixs = df.loc[predict(df.text) == [1]]
+        return json.dumps({"num_bad_words":len(ixs.index)})
+
 
 @app.route('/test', methods=['GET','POST'])
 def test():
+
 
     return json.dumps({"Message":"Eric"})
 
