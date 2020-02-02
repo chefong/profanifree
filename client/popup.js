@@ -1,21 +1,23 @@
-// Copyright 2018 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+const BASE_URL = 'http://2360b618.ngrok.io';
 
-'use strict';
+chrome.tabs.query({'active': true, 'lastFocusedWindow': true}, function (tabs) {
+  var url = tabs[0].url;
+  const ytUrlIdSeparator = 'v=';
+  const ytURL = url.split(ytUrlIdSeparator);
+  const ytID = ytURL[1];
 
-let changeColor = document.getElementById('changeColor');
-
-chrome.storage.sync.get('color', function(data) {
-  changeColor.style.backgroundColor = data.color;
-  changeColor.setAttribute('value', data.color);
+  fetch(`${BASE_URL}/numbadwords`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({video_id: ytID})
+  })
+    .then(response => response.json())
+    .then(data => {
+      console.log('Got response inside POPUP', data);
+      const { num_bad_words: numBadWords } = data;
+      document.getElementById('numBadWords').innerHTML = `${numBadWords}`
+    })
+    .catch(error => console.error ("ERROR INSIDE POPUP", error));
 });
-
-changeColor.onclick = function(element) {
-  let color = element.target.value;
-  chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-    chrome.tabs.executeScript(
-        tabs[0].id,
-        {code: 'document.body.style.backgroundColor = "' + color + '";'});
-  });
-};

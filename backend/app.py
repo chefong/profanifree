@@ -124,7 +124,9 @@ def links():
                     statuses.append({"video_id":video_id, "curse_words":ii})
                 
                 except:
-                    pass
+                    continue
+
+                print('###### STATUSES',statuses)
 
                 return json.dumps({"Message":"Hello chrome extension ppl", "links":statuses})
                 

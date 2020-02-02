@@ -1,4 +1,4 @@
-const BASE_URL = 'http://127.0.0.1:5000';
+const BASE_URL = 'https://2360b618.ngrok.io';
 const ytVideo = document.getElementsByClassName('video-stream')[0];
 const ytUrlIdSeparator = 'v=';
 const ytURL = window.location.href.split(ytUrlIdSeparator);
@@ -57,13 +57,18 @@ function checkVideo() {
     .then(data => {
       console.log(data);
       const { curse_words: hasCurseWords, offending_lines: offendingLines } = data;
+
+      chrome.storage.sync.set({numBadWords: offendingLines.length }, function() {
+        console.log('Value is set to', offendingLines.length);
+      });
+
       if (hasCurseWords) {
         const timestamps = new Map();
 
         offendingLines.forEach(line => {
           const [phrase, timestamp, durationAmount] = line;
           const roundedTimestamp = Math.round(timestamp) + 2;
-          const roundedDurationAmount = durationAmount * 100;
+          const roundedDurationAmount = durationAmount;
           timestamps.set(roundedTimestamp, roundedDurationAmount);
         });
 

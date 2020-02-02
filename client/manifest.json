@@ -6,7 +6,7 @@
     "default_popup": "popup.html"
   },
   "description": "Build an Extension!",
-  "permissions": ["activeTab", "declarativeContent", "storage", "http://80802807.ngrok.io/*"],
+  "permissions": ["activeTab", "declarativeContent", "storage", "http://80802807.ngrok.io/*", "tabs"],
   "web_accessible_resources": [
     "censor-beep-4.mp3"
   ],

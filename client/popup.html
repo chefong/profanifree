@@ -1,15 +1,52 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <link href="https://fonts.googleapis.com/css?family=Bebas+Neue&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Poppins:400,500&display=swap" rel="stylesheet">
     <style>
+      body {
+        width: 296px;
+      }
+
+      #title {
+        font-family: 'Poppins', sans-serif;
+        text-align: center;
+        color: white
+      }
+
+      #numBadWords {
+        font-size: 96px;
+        text-align: center;
+        margin-bottom: 0px;
+        color: rgb(77, 77, 77);
+        margin-top: 0px;
+      }
+
+      #numBadWords__caption {
+        text-align: center;
+        font-size: 14px;
+        font-family: 'Poppins', sans-serif;
+        color: rgb(121, 121, 121);
+        margin-bottom: 42px;
+      }
+
+      .logo__container {
+        text-align: center;
+      }
+
+      #logo {
+        width: 50%;
+        margin-top: 8%;
+      }
     </style>
-    
     <title>Profanifree</title>
   </head>
   <body>
-    <img src='images/profanity.png' id='angryImage' >
-    <button type="button" class="btn btn-primary">Profanifree me</button>
+    <div class="logo__container">
+      <img id="logo" src="./images/profanifree.svg" alt="Profanifree">
+    </div>
+    <h2 id="numBadWords">0</h2>
+    <p id="numBadWords__caption">bad word(s) detected.</p>
     <script src="popup.js"></script>
-    
   </body>
 </html>
