@@ -193,6 +193,14 @@ def comments():
     print(len(comments))
     return json.dumps({"Data": comments})
 
+@app.route('/title', methods=['POST'])
+def title():
+    packet = dict(request.json)
+    parsed_title = packet['Title']
+    new_title = profanity.censor(parsed_title, '*');
+
+    return json.dumps({"Title": new_title})
+
 
 if __name__ == '__main__':
     app.run(debug=True)

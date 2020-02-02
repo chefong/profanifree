@@ -1,4 +1,4 @@
-const BASE_URL = 'https://0845fe40.ngrok.io';
+const BASE_URL = 'http://127.0.0.1:5000';
 // const ytVideo = document.getElementsByClassName('video-stream')[0];
 // const ytUrlIdSeparator = 'v=';
 // const ytURL = window.location.href.split(ytUrlIdSeparator);
@@ -11,6 +11,7 @@ let recElem = [];
 let prevRecListSize = 0;
 let unmuteTimer;
 let videoTime;
+let translatedTitle = false;
 let censorBeep = new Audio(chrome.runtime.getURL('censor-beep-10.wav'));
 censorBeep.volume = 0.1;
 
@@ -23,6 +24,38 @@ chrome.runtime.onMessage.addListener(data => {
     checkVideo(ytVideo, ytID);
   }
 });
+
+
+
+function translateTitle() {
+
+  if(!translatedTitle) {
+    let vidTitle = document.querySelector("h1");
+    let initTitle = document.querySelector("h1").innerText;
+
+    fetch(`${BASE_URL}/title`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ Title: initTitle })
+      })
+        .then(response => response.json())
+        .then(data => {
+          const { Title: title } = data;
+          vidTitle.innerText = title;
+          if(title.includes("****")) {
+            vidTitle.style.color = "red";
+          }
+
+        })
+      .catch(error => console.error('       ##########      ERROR', error));
+  } else {
+    clearInterval(titleInterval);
+  }
+}
+
+let titleInterval = setInterval(translateTitle, 100);
 
 function colorRec() {
   for (i = prevRecListSize; i < recTagElem.length; i++) {
@@ -158,6 +191,8 @@ function checkVideo(ytVideo, ytID) {
 
 setInterval(updateColorRec, 100);
 
+
+
 function checkComment () {
   setTimeout(checkComment, 1000); //wait 50 ms, then try again
   if((document.getElementsByTagName("ytd-comment-thread-renderer").length) > 10){
@@ -178,4 +213,6 @@ window.addEventListener("load", () => {
   console.log('ytID', ytID);
   checkVideo(ytVideo, ytID);
   checkComment();
+  translateTitle();
 });
+
