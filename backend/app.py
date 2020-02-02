@@ -111,25 +111,31 @@ def main():
                 num_chars_passed += 1
                 w = ww[i].split()
                 print(w)
-                if i > (2 * (len(ww)/3)):
-                    #ratio = (len(w) * 1.0)/length_of_caption
-                    t = (ww[i], row.start + (2 * (row.duration/3.0)), (row.duration/3.0))
-                    # row.duration * ratio
-                    s.append(t)
-                elif i > ((len(ww)/3)):
-                    t = (ww[i], row.start + ((row.duration/3.0)), (row.duration/3.0))
-                    # row.duration * ratio
-                    s.append(t)
+                if predict([ww[i]])== [1]:
 
-                # elif i > ((len(ww)/4)):
-                #     t = (ww[i], row.start  + ((row.duration/4.0)), (row.duration/4.0))
-                #     # row.duration * ratio
-                #     s.append(t)
+                    # t = (ww[i], row.start + (row.duration * (1 - (num_chars_passed/length_of_caption))), (num_chars_passed/length_of_caption) * row.duration)
 
-                else:
-                    t = (ww[i], row.start, (row.duration/3.0))
-                    # row.duration * ratio
-                    s.append(t)
+                    # s.append(t)
+
+                    if i > (2 * (len(ww)/3)):
+                        #ratio = (len(w) * 1.0)/length_of_caption
+                        t = (ww[i], row.start + (2 * (row.duration/3.0)), (row.duration/3.0))
+                        # row.duration * ratio
+                        s.append(t)
+                    elif i > ((len(ww)/3)):
+                        t = (ww[i], row.start + ((row.duration/3.0)), (row.duration/3.0))
+                        # row.duration * ratio
+                        s.append(t)
+
+                    # elif i > ((len(ww)/4)):
+                    #     t = (ww[i], row.start  + ((row.duration/4.0)), (row.duration/4.0))
+                    #     # row.duration * ratio
+                    #     s.append(t)
+
+                    else:
+                        t = (ww[i], row.start, (row.duration/3.0))
+                        # row.duration * ratio
+                        s.append(t)
 
                 
 
