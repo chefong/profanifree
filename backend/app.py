@@ -121,6 +121,7 @@ def links():
             for link in links:
                 #somehow get video from link
                 video_id = link[-11:]
+                df = None
                 try:
                     # print("hellos")
                     df = pd.DataFrame(YouTubeTranscriptApi.get_transcript(video_id))
