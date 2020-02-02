@@ -13,15 +13,6 @@ let videoTime;
 let censorBeep = new Audio(chrome.runtime.getURL('censor-beep-4.mp3'));
 censorBeep.volume = 0.25;
 
-function updateColorRec() {
-  recTagElem = document.getElementsByTagName("ytd-compact-video-renderer");
-  if(recTagElem.length > 3) {
-    if(prevRecListSize != recTagElem.length) {
-      colorRec();
-    }
-  }
-}
-
 
 function colorRec() {
 
@@ -52,6 +43,15 @@ function colorRec() {
 
     })
   .catch(error => console.error('       ##########      ERROR', error));
+}
+
+function updateColorRec() {
+  recTagElem = document.getElementsByTagName("ytd-compact-video-renderer");
+  if(recTagElem.length > 3) {
+    if(prevRecListSize != recTagElem.length) {
+      colorRec();
+    }
+  }
 }
 
 
