@@ -23,17 +23,8 @@ cors = CORS(app,resources={r"/*": {"origins": "*"}})
 
 # api_key = "***PUT IN YOUR API KEY HERE***"
 import pyrebase
-config = {
-    "apiKey": "AIzaSyDSbIxKIL4LlUCzNftXxPe4mA7rj7kxXrU",
-    "authDomain": "cs180profilepictures.firebaseapp.com",
-    "databaseURL": "https://cs180profilepictures.firebaseio.com",
-    "projectId": "cs180profilepictures",
-    "storageBucket": "cs180profilepictures.appspot.com",
-    "messagingSenderId": "878407135530",
-}
 
-firebase = pyrebase.initialize_app(config)
-storage = firebase.storage()
+
 
 from google.cloud import storage
 
@@ -116,36 +107,31 @@ def main():
             print(ww)
             num_chars_passed = 0
             for i in range(0, len(ww)):
-
+                num_chars_passed += len(ww[i])
+                num_chars_passed += 1
                 w = ww[i].split()
                 print(w)
-                if predict([ww[i]])== [1]:
-
-                    t = (ww[i], row.start + (row.duration * (1 - (num_chars_passed/length_of_caption))), (num_chars_passed/length_of_caption) * row.duration)
-
+                if i > (2 * (len(ww)/3)):
+                    #ratio = (len(w) * 1.0)/length_of_caption
+                    t = (ww[i], row.start + (2 * (row.duration/3.0)), (row.duration/3.0))
+                    # row.duration * ratio
+                    s.append(t)
+                elif i > ((len(ww)/3)):
+                    t = (ww[i], row.start + ((row.duration/3.0)), (row.duration/3.0))
+                    # row.duration * ratio
                     s.append(t)
 
-                    # if i > (2 * (len(ww)/3)):
-                    #     #ratio = (len(w) * 1.0)/length_of_caption
-                    #     t = (ww[i], row.start + (2 * (row.duration/3.0)), (row.duration/3.0))
-                    #     # row.duration * ratio
-                    #     s.append(t)
-                    # elif i > ((len(ww)/3)):
-                    #     t = (ww[i], row.start + ((row.duration/3.0)), (row.duration/3.0))
-                    #     # row.duration * ratio
-                    #     s.append(t)
+                # elif i > ((len(ww)/4)):
+                #     t = (ww[i], row.start  + ((row.duration/4.0)), (row.duration/4.0))
+                #     # row.duration * ratio
+                #     s.append(t)
 
-                    # # elif i > ((len(ww)/4)):
-                    # #     t = (ww[i], row.start  + ((row.duration/4.0)), (row.duration/4.0))
-                    # #     # row.duration * ratio
-                    # #     s.append(t)
+                else:
+                    t = (ww[i], row.start, (row.duration/3.0))
+                    # row.duration * ratio
+                    s.append(t)
 
-                    # else:
-                    #     t = (ww[i], row.start, (row.duration/3.0))
-                    #     # row.duration * ratio
-                    #     s.append(t)
-
-                num_chars_passed += len(ww[i])
+                
 
         # print(ixs)
         # ixs.start = ixs.start.round()
@@ -259,14 +245,6 @@ def comments():
         comments[i] = censored_text
     print(len(comments))
     return json.dumps({"Data": comments})
-
-@app.route('/title', methods=['POST'])
-def title():
-    packet = dict(request.json)
-    parsed_title = packet['Title']
-    new_title = profanity.censor(parsed_title, '*');
-
-    return json.dumps({"Title": new_title})
 
 
 if __name__ == '__main__':
