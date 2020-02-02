@@ -99,6 +99,14 @@ def main():
         return json.dumps({"Message": "Hello chrome extension ppl", "curse_words":ii,  "offending_lines":jsonToDicts(json.dumps(s))})
 
 
+def checkBadWordsGranualar(L):
+
+    for w in L:
+        if predict([w]) == [1]:
+            return True
+    return False
+
+
 @app.route('/links', methods=['GET','POST'])
 def links():
 
@@ -107,30 +115,35 @@ def links():
         if links == None:
             packet = dict(request.json)
             links = packet['links']
-
+            ii = False
             statuses = []
-            print(links)
+            # print(links)
             for link in links:
                 #somehow get video from link
                 video_id = link[-11:]
                 try:
-                    print("hellos")
+                    # print("hellos")
                     df = pd.DataFrame(YouTubeTranscriptApi.get_transcript(video_id))
                     ixs = df.loc[predict(df.text) == [1]]
                     if ixs.empty:
                         ii = False
                     else:
-                        ii = True
-
+                        for index, row in ixs.iterrows():
+                            if checkBadWordsGranualar(row.text.split()):
+                                ii = True
+                                print(row.text)
                     statuses.append({"video_id":video_id, "curse_words":ii})
                 
                 except youtube_transcript_api._errors.VideoUnavailable:
-                    print("hellop")
+                    # print("hellop")
                     continue
                 except youtube_transcript_api._errors.TranscriptsDisabled:
-                    print("hellq")
+                    # print("hellq")
                     continue
-                print(statuses)
+                except youtube_transcript_api._errors.NoTranscriptAvailable:
+                    # print("hellow")
+                    continue 
+                # print(statuses)
             return json.dumps({"Message":"Hello chrome extension ppl", "links":statuses})
                 
 
@@ -145,7 +158,13 @@ def numbadwords():
         try:
             data = YouTubeTranscriptApi.get_transcript(video_id)
         except youtube_transcript_api._errors.TranscriptsDisabled:
-            return json.dumps({"Message":"Subtitles disabled for this video"})
+            return json.dumps({"Message":"Subtitles disabled for this video", "num_bad_words": 0})
+        except youtube_transcript_api._errors.VideoUnavailable:
+            return json.dumps({"Message":"Subtitles disabled for this video", "num_bad_words": 0})
+        except youtube_transcript_api._errors.TranscriptsDisabled:
+            return json.dumps({"Message":"Subtitles disabled for this video", "num_bad_words": 0})
+        except youtube_transcript_api._errors.NoTranscriptAvailable:
+            return json.dumps({"Message":"Subtitles disabled for this video", "num_bad_words": 0})
         df = pd.DataFrame(data)
         print(df)
 

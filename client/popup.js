@@ -1,4 +1,4 @@
-const BASE_URL = 'http://2360b618.ngrok.io';
+const BASE_URL = 'http://localhost:5000';
 
 chrome.tabs.query({'active': true, 'lastFocusedWindow': true}, function (tabs) {
   var url = tabs[0].url;

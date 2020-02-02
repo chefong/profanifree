@@ -1,4 +1,4 @@
-const BASE_URL = 'https://2360b618.ngrok.io';
+const BASE_URL = 'http://localhost:5000';
 const ytVideo = document.getElementsByClassName('video-stream')[0];
 const ytUrlIdSeparator = 'v=';
 const ytURL = window.location.href.split(ytUrlIdSeparator);
@@ -45,7 +45,8 @@ function colorRec() {
 
 
 function checkVideo() {
-
+  console.log("hewwo owo");
+  ytVideo.pause();
   fetch(`${BASE_URL}/`, {
     method: 'POST',
     headers: {
@@ -73,7 +74,7 @@ function checkVideo() {
         });
 
         console.log(timestamps);
-
+        ytVideo.play();
         videoTime = setInterval(function() {
           let roundedTime = Math.round(ytVideo.currentTime);
           console.log(roundedTime);
@@ -105,7 +106,10 @@ function checkVideo() {
         })
       }
     })
-    .catch(error => console.error('###########      ERROR', error));
+    .catch(error => { 
+      ytVideo.play();
+      console.error('###########      ERROR', error)
+    });
 }
 
 setInterval(colorRec, 4000);
