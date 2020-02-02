@@ -3,8 +3,9 @@ const ytVideo = document.getElementsByClassName('video-stream')[0];
 const ytUrlIdSeparator = 'v=';
 const ytURL = window.location.href.split(ytUrlIdSeparator);
 const ytID = ytURL[1];
+var count = 0;
 
-let recTagElem;
+let recTagElem = document.getElementsByTagName("ytd-compact-video-renderer");
 let recList = [];
 let recElem = [];
 let prevRecListSize = 0;
@@ -13,18 +14,8 @@ let videoTime;
 let censorBeep = new Audio(chrome.runtime.getURL('censor-beep-4.mp3'));
 censorBeep.volume = 0.25;
 
-function updateColorRec() {
-  recTagElem = document.getElementsByTagName("ytd-compact-video-renderer");
-  if(recTagElem.length > 3) {
-    if(prevRecListSize != recTagElem.length) {
-      colorRec();
-    }
-  }
-}
-
 
 function colorRec() {
-
   for (i = prevRecListSize; i < recTagElem.length; i++) {
     recList.push(recTagElem[i].querySelector("a").href);
     recElem.push(recTagElem[i].querySelector("#video-title"))
@@ -36,28 +27,58 @@ function colorRec() {
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({ links: recList })
-  })  
+  })
     .then(response => response.json())
     .then(data => {
       const { Message: inputMessage, links: offendingRec } = data;
-      console.log(offendingRec);
-
-
+      //console.log(offendingRec);
       for(i = 0; i < offendingRec.length; i++) {
         if(offendingRec[i].curse_words) {
           recElem[i].style.color = "red";
         }
       }
-
-
     })
   .catch(error => console.error('       ##########      ERROR', error));
 }
 
+function updateColorRec() {
+  recTagElem = document.getElementsByTagName("ytd-compact-video-renderer");
+  if(recTagElem.length > 3) {
+    if(prevRecListSize != recTagElem.length) {
+      colorRec();
+    }
+  }
+}
+
+
+function commentParser() {
+  var temp = document.getElementsByTagName("ytd-comment-thread-renderer");
+  list = []
+  console.log(temp.length)
+  for (i = 0; i < temp.length; ++i) {
+    list.push(temp[i].getElementsByTagName("ytd-expander")[0].querySelector("div").getElementsByTagName("yt-formatted-string")[1].innerText);
+  }
+
+  fetch(`${BASE_URL}/test`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ comments: list })
+  })
+  .then(response => response.json())
+  .then(data => {
+    for (i = 0; i < temp.length; ++i) {
+      if (data['Data'][i] && data['Data'][i].includes("*") == true){
+        temp[i].getElementsByTagName("ytd-expander")[0].querySelector("#content-text").style.color = "red";
+      }
+      list.push(temp[i].getElementsByTagName("ytd-expander")[0].querySelector("div").getElementsByTagName("yt-formatted-string")[1].innerText = data['Data'][i]);
+    }
+  })
+}
 
 function checkVideo() {
-  console.log("hewwo owo");
-  ytVideo.pause();
+ytVideo.pause();
   fetch(`${BASE_URL}/`, {
     method: 'POST',
     headers: {
@@ -67,9 +88,7 @@ function checkVideo() {
   })
     .then(response => response.json())
     .then(data => {
-      console.log(data);
       const { curse_words: hasCurseWords, offending_lines: offendingLines } = data;
-
       chrome.storage.sync.set({numBadWords: offendingLines.length }, function() {
         console.log('Value is set to', offendingLines.length);
       });
@@ -84,11 +103,11 @@ function checkVideo() {
           timestamps.set(roundedTimestamp, roundedDurationAmount);
         });
 
-        console.log(timestamps);
+        // console.log(timestamps);
         ytVideo.play();
         videoTime = setInterval(function() {
           let roundedTime = Math.round(ytVideo.currentTime);
-          console.log(roundedTime);
+          // console.log(roundedTime);
           if (timestamps.has(roundedTime)) {
             ytVideo.muted = true;
             censorBeep.play();
@@ -103,7 +122,7 @@ function checkVideo() {
         ytVideo.addEventListener('play', () => {
           videoTime = setInterval(function() {
             let roundedTime = Math.round(ytVideo.currentTime);
-            console.log(roundedTime);
+            //console.log(roundedTime);
             if (timestamps.has(roundedTime)) {
               ytVideo.muted = true;
               censorBeep.play();
@@ -117,7 +136,7 @@ function checkVideo() {
         })
       }
     })
-    .catch(error => { 
+    .catch(error => {
       ytVideo.play();
       console.error('###########      ERROR', error)
     });
@@ -133,3 +152,16 @@ ytVideo.addEventListener('pause', () => {
   clearInterval(videoTime);
   console.log("hewwo")
 });
+
+function checkComment () {
+  setTimeout(checkComment, 1000); //wait 50 ms, then try again
+  if((document.getElementsByTagName("ytd-comment-thread-renderer").length) > 10){
+    let temp = (document.getElementsByTagName("ytd-comment-thread-renderer").length)
+    if (temp > count){
+      count = temp;
+      commentParser();
+    }
+  }
+}
+
+window.addEventListener("load", checkComment);

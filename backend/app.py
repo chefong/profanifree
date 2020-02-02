@@ -1,10 +1,12 @@
 import json
 import re
 import urllib.request
+import requests
 
 from pytube import YouTube
-
 from flask import Flask, request, url_for
+from better_profanity import profanity
+
 
 app = Flask(__name__)
 import youtube_transcript_api
@@ -23,7 +25,7 @@ cors = CORS(app,resources={r"/*": {"origins": "*"}})
 
 # url = f"https://www.googleapis.com/youtube/v3/videos?part=snippet&id={video_id}&key={api_key}"
 def jsonToDicts(STR):
-    
+
     STRI = list(STR)
     for i in range(0,len(STRI)):
         if STRI[i] == "\"":
@@ -36,12 +38,10 @@ def jsonToDicts(STR):
 @app.route('/', methods=['GET','POST'])
 def main():
 
-
-
     if request.method == 'POST':
         print(request.form)
         print(request.json)
-       
+
         video_id = request.form.get('video_id')
         if video_id == None:
             packet = dict(request.json)
@@ -60,7 +60,7 @@ def main():
         ixs = df.loc[predict(df.text) == [1]]
         s = []
         for index, row in ixs.iterrows():
-            # find the number of characters in the caption. 
+            # find the number of characters in the caption.
             # divide that number by the total length of the caption (with or without spaces)
             r = row.text.replace('\n', ' ')
             length_of_caption = len(r)
@@ -70,7 +70,7 @@ def main():
             print(ww)
             num_chars_passed = 0
             for i in range(0, len(ww)):
-                
+
                 w = ww[i].split()
                 print(w)
                 if predict([ww[i]])== [1]:
@@ -79,13 +79,13 @@ def main():
                     # row.duration * ratio
                     s.append(t)
                 num_chars_passed += len(ww[i])
-                    
+
         # print(ixs)
         # ixs.start = ixs.start.round()
         # ixs.duration = ixs.duration.round()
         offending_lines = [tuple(x) for x in ixs.to_numpy()]
-        
-        
+
+
         if ixs.empty:
             ii = False
         else:
@@ -94,8 +94,8 @@ def main():
         if len(s) == 0:
             ii = False
 
-        
-        
+
+
         return json.dumps({"Message": "Hello chrome extension ppl", "curse_words":ii,  "offending_lines":jsonToDicts(json.dumps(s))})
 
 
@@ -134,7 +134,7 @@ def links():
                                 ii = True
                                 print(row.text)
                     statuses.append({"video_id":video_id, "curse_words":ii})
-                
+
                 except youtube_transcript_api._errors.VideoUnavailable:
                     # print("hellop")
                     continue
@@ -143,10 +143,10 @@ def links():
                     continue
                 except youtube_transcript_api._errors.NoTranscriptAvailable:
                     # print("hellow")
-                    continue 
+                    continue
                 # print(statuses)
             return json.dumps({"Message":"Hello chrome extension ppl", "links":statuses})
-                
+
 
 @app.route('/numbadwords', methods=['GET', 'POST'])
 def numbadwords():
@@ -173,11 +173,25 @@ def numbadwords():
         return json.dumps({"num_bad_words":len(ixs.index)})
 
 
-@app.route('/test', methods=['GET','POST'])
-def test():
 
 
-    return json.dumps({"Message":"Eric"})
+        return json.dumps({"Message": "Hello chrome extension ppl", "no_curse_words":no_curse_words, "offending_lines":offending_lines})
+
+@app.route('/test', methods=['POST'])
+def comments():
+    comment_dict = {}
+    packet = dict(request.json)
+    comments = packet['comments']
+    # url = "https://www.googleapis.com/youtube/v3/commentThreads?part=snippet&key="+g_key+"&videoId="+video_id+"&maxResults=100";
+    #
+    # json_url = urllib.request.urlopen(url)
+    # data = json.loads(json_url.read())
+    #
+    for i in range(0, len(comments)):
+        censored_text = profanity.censor(comments[i], '*')
+        comments[i] = censored_text
+    print(len(comments))
+    return json.dumps({"Data": comments})
 
 
 if __name__ == '__main__':
