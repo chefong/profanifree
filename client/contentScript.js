@@ -4,16 +4,26 @@ const ytUrlIdSeparator = 'v=';
 const ytURL = window.location.href.split(ytUrlIdSeparator);
 const ytID = ytURL[1];
 
+let recTagElem;
 let recList = [];
 let recElem = [];
+let recListSize = 0;
 let unmuteTimer;
 let videoTime;
 let censorBeep = new Audio(chrome.runtime.getURL('censor-beep-4.mp3'));
 censorBeep.volume = 0.25;
 
+function updateColorRec() {
+  recTagElem = document.getElementsByTagName("ytd-compact-video-renderer");
+  if(recListSize != recTagElem.length) {
+    recListSize = recTagElem.length;
+    colorRec();
+  }
+}
+
 
 function colorRec() {
-  var x = document.getElementsByTagName("ytd-compact-video-renderer");
+  var x = recTagElem;
   recList = [];
   recElem = [];
   for (i = 0; i < x.length; i++) {
@@ -112,18 +122,10 @@ function checkVideo() {
     });
 }
 
-setInterval(colorRec, 4000);
-window.addEventListener("locationchange", function () {
-  // if url is youtube
-  //then call checkVideo
-  console.log("hewwo fwends");
-  if (window.location.toString().includes("youtube")){
-    console.log("hewwo ewic ");
-    checkVideo();
-  }
 
-}
-);
+setInterval(updateColorRec, 2000);
+window.addEventListener("load", checkVideo, false);
+
 
 ytVideo.addEventListener('pause', () => {
   console.log('pause EVENT LISTENER FROM VIDEO')
