@@ -1,8 +1,8 @@
-const BASE_URL = 'http://localhost:5000';
-const ytVideo = document.getElementsByClassName('video-stream')[0];
-const ytUrlIdSeparator = 'v=';
-const ytURL = window.location.href.split(ytUrlIdSeparator);
-const ytID = ytURL[1];
+const BASE_URL = 'https://0845fe40.ngrok.io';
+// const ytVideo = document.getElementsByClassName('video-stream')[0];
+// const ytUrlIdSeparator = 'v=';
+// const ytURL = window.location.href.split(ytUrlIdSeparator);
+// const ytID = ytURL[1];
 var count = 0;
 
 let recTagElem = document.getElementsByTagName("ytd-compact-video-renderer");
@@ -11,9 +11,18 @@ let recElem = [];
 let prevRecListSize = 0;
 let unmuteTimer;
 let videoTime;
-let censorBeep = new Audio(chrome.runtime.getURL('censor-beep-4.mp3'));
-censorBeep.volume = 0.25;
+let censorBeep = new Audio(chrome.runtime.getURL('censor-beep-10.wav'));
+censorBeep.volume = 0.1;
 
+chrome.runtime.onMessage.addListener(data => {
+  if (data.action === "watching") {
+    const ytVideo = document.getElementsByClassName('video-stream')[0];
+    const ytUrlIdSeparator = 'v=';
+    const ytURL = window.location.href.split(ytUrlIdSeparator);
+    const ytID = ytURL[1];
+    checkVideo(ytVideo, ytID);
+  }
+});
 
 function colorRec() {
   for (i = prevRecListSize; i < recTagElem.length; i++) {
@@ -77,8 +86,15 @@ function commentParser() {
   })
 }
 
-function checkVideo() {
-ytVideo.pause();
+function checkVideo(ytVideo, ytID) {
+  ytVideo.pause();
+
+  ytVideo.addEventListener('pause', () => {
+    console.log('pause EVENT LISTENER FROM VIDEO')
+    clearTimeout(unmuteTimer);
+    clearInterval(videoTime);
+  });
+
   fetch(`${BASE_URL}/`, {
     method: 'POST',
     headers: {
@@ -88,10 +104,8 @@ ytVideo.pause();
   })
     .then(response => response.json())
     .then(data => {
+      console.log('Data', data);
       const { curse_words: hasCurseWords, offending_lines: offendingLines } = data;
-      chrome.storage.sync.set({numBadWords: offendingLines.length }, function() {
-        console.log('Value is set to', offendingLines.length);
-      });
 
       if (hasCurseWords) {
         const timestamps = new Map();
@@ -99,15 +113,15 @@ ytVideo.pause();
         offendingLines.forEach(line => {
           const [phrase, timestamp, durationAmount] = line;
           const roundedTimestamp = Math.round(timestamp) + 2;
-          const roundedDurationAmount = durationAmount;
+          const roundedDurationAmount = Math.round(durationAmount) + 1.25;
           timestamps.set(roundedTimestamp, roundedDurationAmount);
         });
 
-        // console.log(timestamps);
+        console.log(timestamps);
+
         ytVideo.play();
         videoTime = setInterval(function() {
           let roundedTime = Math.round(ytVideo.currentTime);
-          // console.log(roundedTime);
           if (timestamps.has(roundedTime)) {
             ytVideo.muted = true;
             censorBeep.play();
@@ -122,7 +136,6 @@ ytVideo.pause();
         ytVideo.addEventListener('play', () => {
           videoTime = setInterval(function() {
             let roundedTime = Math.round(ytVideo.currentTime);
-            //console.log(roundedTime);
             if (timestamps.has(roundedTime)) {
               ytVideo.muted = true;
               censorBeep.play();
@@ -144,14 +157,6 @@ ytVideo.pause();
 
 
 setInterval(updateColorRec, 100);
-window.addEventListener("load", checkVideo, false);
-
-ytVideo.addEventListener('pause', () => {
-  console.log('pause EVENT LISTENER FROM VIDEO')
-  clearTimeout(unmuteTimer);
-  clearInterval(videoTime);
-  console.log("hewwo")
-});
 
 function checkComment () {
   setTimeout(checkComment, 1000); //wait 50 ms, then try again
@@ -164,4 +169,13 @@ function checkComment () {
   }
 }
 
-window.addEventListener("load", checkComment);
+window.addEventListener("load", () => {
+  const ytVideo = document.getElementsByClassName('video-stream')[0];
+  const ytUrlIdSeparator = 'v=';
+  const ytURL = window.location.href.split(ytUrlIdSeparator);
+  const ytID = ytURL[1];
+  console.log('ytVideo', ytVideo);
+  console.log('ytID', ytID);
+  checkVideo(ytVideo, ytID);
+  checkComment();
+});
