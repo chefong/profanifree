@@ -113,7 +113,17 @@ function checkVideo() {
 }
 
 setInterval(colorRec, 4000);
-window.addEventListener("load", checkVideo, false);
+window.addEventListener("locationchange", function () {
+  // if url is youtube
+  //then call checkVideo
+  console.log("hewwo fwends");
+  if (window.location.toString().includes("youtube")){
+    console.log("hewwo ewic ");
+    checkVideo();
+  }
+
+}
+);
 
 ytVideo.addEventListener('pause', () => {
   console.log('pause EVENT LISTENER FROM VIDEO')
