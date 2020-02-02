@@ -7,7 +7,7 @@ const ytID = ytURL[1];
 let recTagElem;
 let recList = [];
 let recElem = [];
-let recListSize = 0;
+let prevRecListSize = 0;
 let unmuteTimer;
 let videoTime;
 let censorBeep = new Audio(chrome.runtime.getURL('censor-beep-4.mp3'));
@@ -15,21 +15,21 @@ censorBeep.volume = 0.25;
 
 function updateColorRec() {
   recTagElem = document.getElementsByTagName("ytd-compact-video-renderer");
-  if(recListSize != recTagElem.length) {
-    recListSize = recTagElem.length;
-    colorRec();
+  if(recTagElem.length > 3) {
+    if(prevRecListSize != recTagElem.length) {
+      colorRec();
+    }
   }
 }
 
 
 function colorRec() {
-  var x = recTagElem;
-  recList = [];
-  recElem = [];
-  for (i = 0; i < x.length; i++) {
-    recList.push(x[i].querySelector("a").href);
-    recElem.push(x[i].querySelector("#video-title"))
+
+  for (i = prevRecListSize; i < recTagElem.length; i++) {
+    recList.push(recTagElem[i].querySelector("a").href);
+    recElem.push(recTagElem[i].querySelector("#video-title"))
   }
+  prevRecListSize = recTagElem.length;
   fetch(`${BASE_URL}/links`, {
     method: 'POST',
     headers: {
@@ -41,14 +41,15 @@ function colorRec() {
     .then(data => {
       const { Message: inputMessage, links: offendingRec } = data;
       console.log(offendingRec);
-      for (i = 0; i < recList.length; i++) {
-        for(j = 0; j < offendingRec.length; j++) {
-          if(recList[i].includes(offendingRec[j].video_id) && offendingRec[j].curse_words) {
-            recElem[i].style.color = "red";
 
-          }
+
+      for(i = 0; i < offendingRec.length; i++) {
+        if(offendingRec[i].curse_words) {
+          recElem[i].style.color = "red";
         }
       }
+
+
     })
   .catch(error => console.error('       ##########      ERROR', error));
 }
@@ -123,9 +124,8 @@ function checkVideo() {
 }
 
 
-setInterval(updateColorRec, 2000);
+setInterval(updateColorRec, 100);
 window.addEventListener("load", checkVideo, false);
-
 
 ytVideo.addEventListener('pause', () => {
   console.log('pause EVENT LISTENER FROM VIDEO')
