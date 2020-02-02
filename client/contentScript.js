@@ -147,7 +147,7 @@ function checkVideo(ytVideo, ytID) {
 
         offendingLines.forEach(line => {
           const [phrase, timestamp, durationAmount] = line;
-          const roundedTimestamp = Math.round(timestamp) + 2;
+          const roundedTimestamp = Math.round(timestamp);
           const roundedDurationAmount = Math.round(durationAmount) + 1.25;
           timestamps.set(roundedTimestamp, roundedDurationAmount);
         });
